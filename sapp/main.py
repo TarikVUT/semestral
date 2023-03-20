@@ -1,15 +1,7 @@
 '''
-Author : Tarik Alkanan
-
+Author : Tarik Alkanan 
 '''
 import os
-'''
-The line below is to hide {pygame 2.1.2 (SDL 2.0.16, Python 3.10.7)
-Hello from the pygame community. https://www.pygame.org/contribute.html
-}
-'''
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"       
-
 from tkinter import *
 from Constants import *
 from setConstant import *
@@ -19,31 +11,47 @@ import pygame
 from tkinter import ttk
 from pygame import mixer
 
-import importlib
 import hashlib
 import string
 
 def main():
-    ACTIVEBACKGROUND = "#4b4c4b"
+
+    os.chdir("/home/stext")
     COLOR_BG = "#D3D3D3"
-    pwd = os.getcwd()   #get work dir
-    #Create the window
+
+    ############# Create the window ###############
     window = Tk()
     screen_width = window.winfo_screenwidth()          ##get screen width
     screen_height= window.winfo_screenheight()         ##get screen height
     button_width = int(screen_width/2 - 10)
     button_height = int(screen_height/2 - 10)
+    # set space between buttons
+    x_side =int( screen_width/2 - ((screen_width/2)*0.95))
+    y_side = int(screen_height/2 -((screen_height/2)*0.95))
 
     pygame.mixer.init()
 
     window.geometry("%dx%d" % (screen_width,screen_height))   
     window.attributes('-fullscreen',True)
     window.resizable(0,0)
-    window.title("Senior OS")
+    window.configure(bg="#edf5f6")
 
-    #Resize image 
+    ##### Basic functions #####
+    # shutdown function
+    def shutdown_system():  
+        os.system("shutdown now -h")
+        
+    # function to reboot the system
+    def reboot_sys():
+        os.system('reboot')
+        
+    # function to hash passwd   
+    def hash_fun(string):
+        hashed_string = hashlib.sha256(string.encode('utf-8')).hexdigest()
+        return hashed_string
+    # function to resize image 
     def resizeImage(image,width,height):
-        resizedImage=image.resize((int(screen_width/2 - 10),int(screen_height/2 - 10)))
+        resizedImage=image.resize((int((screen_width/2)*0.9),int((screen_height/2)*0.9)))
         newImage=ImageTk.PhotoImage(resizedImage)
         return newImage
     
@@ -94,23 +102,11 @@ def main():
     image_cancel_resized=resizeImage(img_cancel,screen_width,screen_height)
 
 
-
-    # shutdown function
-    def shutdown_system():  
-        os.system("shutdown now -h")
+   
         
-    #function to reboot the system
-    def reboot_sys():
-        os.system('reboot')
-        
-    #Function to hash passwd   
-    def hash_fun(string):
-        hashed_string = hashlib.sha256(string.encode('utf-8')).hexdigest()
-        return hashed_string
-        
-    '''
-    Sound functions
-    '''
+  
+    ################### Sound functions #####################
+  
     def play_shutdown(event):
         if SOUND:
             pygame.mixer.music.load(SHUTDOWN_WAV)
@@ -136,42 +132,47 @@ def main():
             pygame.mixer.music.load(CANCEL_WAV)
             pygame.mixer.music.play()
 
-    #turn on/off sound
+    ###########################################################
 
-    
+    ################## Function to Open stext, sweb, smail ##################
+    #open sapp
+    def sapp_window():
+        os.chdir("/home/sapp")
+        try:
+            if os.system('/home/sapp/env/bin/python /home/sapp/main.py') != 0 :
+                raise Exception()
+        except (Exception) :
+            messagebox.showerror('Error','Can not open sapp app')
+        window.destroy()
+        
     #open stext app
     def stext_window():
-    
-        os.system('/home/stext/stextenv/bin/python /home/stext/v.py')
-        '''
+        os.chdir("/home/stext")
         try:
-            if os.system('home/stext/stextenv/bin/python3 /home/stext/main.py') != 0 :
+            if os.system('/home/stext/env/bin/python3 /home/stext/main.py') != 0 :
                 raise Exception()
         except (Exception) :
-            messagebox.showerror('Error','Can not open texteditor app')
-        '''    
+            messagebox.showerror('Error','Can not open stext app')
+           
     #open smail app     
     def smail_window():
+        os.chdir("/home/smail")
         try:
-            if os.system('/home/smail/smailenv/bin/python /home/smail/smail.py') != 0 :
+            if os.system('/home/smail/env/bin/python /home/smail/main.py') != 0 :
                 raise Exception()
         except (Exception) :
-            messagebox.showerror('Error','Can not open texteditor app')
+            messagebox.showerror('Error','Can not open smail app')
 
     #open sweb app
     def sweb_window():
+        os.chdir("/home/sweb")
         try:
-            if os.system('python /home/smail/main.py') != 0 :
+            if os.system('/home/sweb/env/bin/python /home/sweb/main.py') != 0 :
                 raise Exception()
         except (Exception) :
             messagebox.showerror('Error','Can not open texteditor app')
-            
-    #open smail  
-    #def email_window():
 
-    #New window to change passwd
-
-    #def personlize():
+    ############################################################################       
         
 
 
@@ -275,16 +276,12 @@ def main():
         output_info = Label(change_password_win, text="Welcome", bg=COLOR_BG, font="none 15", width=60)
         output_info.grid(row=8, column=0, sticky=EW, pady=10)
 
-    #### Administrator window ####
+
+
+    ################## Administrator window ##################
     def administrator_window():
         #start up the gdm (gdm)
-        def run_gdm():
-            os.system('sudo systemctl start gdm')
         
-        def change_pass():
-            os.system('python /home/sapp/pass.py')
-        
-
         def toggle_json_sound():
             # Read the JSON data from the file
             with open(pwd_json+'/mainConstants.json') as f:
@@ -342,14 +339,19 @@ def main():
                 language_btn.config(image=cz_img)
             else:
                  language_btn.config(image=en_img)
-                 
+        ##### fix
+        def confirm_change():
+            Administrator_win.destroy()
+            message_box = messagebox.askquestion("Confirm", "Would you like to confirm changes")
+            if message_box == "yes":
+                sapp_window()
+            
 
 
         off_img = PhotoImage(file = r'/home/sapp/Images/off-button.png')
         on_img = PhotoImage(file = r'/home/sapp/Images/on-button.png')
         cz_img = PhotoImage(file = r'/home/sapp/Images/cz-button.png')
         en_img = PhotoImage(file = r'/home/sapp/Images/en-button.png')
-        start_img = PhotoImage(file = r'/home/sapp/Images/start.png')
         close_img = PhotoImage(file = r'/home/sapp/Images/close.png')
         change_img = PhotoImage(file = r'/home/sapp/Images/change.png')
         reboot_img = PhotoImage(file = r'/home/sapp/Images/reboot.png')
@@ -372,74 +374,71 @@ def main():
 
 
 
-        root_win = Toplevel(window)
-        root_win.title('Administrator window')
+        Administrator_win = Toplevel(window)
+        Administrator_win.title('Administrator window')
         root_win_width = 430
         root_win_height = 500
         x_point_root_win = (screen_width/2)-(root_win_width/2)
         y_point_root_win = (screen_height/2)-(root_win_height/2)
-        root_win.geometry("%dx%d+%d+%d"%(root_win_width,
+        Administrator_win.geometry("%dx%d+%d+%d"%(root_win_width,
                                 root_win_height,x_point_root_win,
                                 y_point_root_win))
-        #root_win.configure(bg=COLOR_BG)
-        root_win.resizable(0,0)
+   
+        Administrator_win.resizable(0,0)
 
         ###### LABEL ######
-        sound_lbl = Label(root_win, text="- Sound:", font="none 12 bold")
+        sound_lbl = Label(Administrator_win, text="- Sound:", font="none 12 bold")
         sound_lbl.grid(row=1, column=0, sticky=W, pady=8, padx = 10)
 
-        color_lbl = Label(root_win, text="- Color style:", font="none 12 bold")
+        color_lbl = Label(Administrator_win, text="- Color style:", font="none 12 bold")
         color_lbl.grid(row=3, column=0, sticky=W, pady=8, padx = 10)
 
-        language_lbl = Label(root_win, text="- Language:", font="none 12 bold")
+        language_lbl = Label(Administrator_win, text="- Language:", font="none 12 bold")
         language_lbl.grid(row=5, column=0, sticky=W, pady=8, padx = 10)
 
-        GDM_lbl = Label(root_win, text="- Run GDM:", font="none 12 bold")
-        GDM_lbl.grid(row=7, column=0, sticky=W, pady=8, padx = 10)
+        close_lbl = Label(Administrator_win, text="- Close desktop:",  font="none 12 bold")
+        close_lbl.grid(row=7, column=0, sticky=W, pady=8, padx = 10)
 
-        close_lbl = Label(root_win, text="- Close desktop:",  font="none 12 bold")
-        close_lbl.grid(row=9, column=0, sticky=W, pady=8, padx = 10)
+        change_lbl = Label(Administrator_win, text="- Change user's password",  font="none 12 bold")
+        change_lbl.grid(row=9, column=0, sticky=W, pady=8, padx = 10)
 
-        change_lbl = Label(root_win, text="- Change user's password",  font="none 12 bold")
-        change_lbl.grid(row=11, column=0, sticky=W, pady=8, padx = 10)
-
-        reboot_lbl = Label(root_win, text="- Reboot the OS",  font="none 12 bold")
-        reboot_lbl.grid(row=13, column=0, sticky=W, pady=8, padx = 10)
+        reboot_lbl = Label(Administrator_win, text="- Reboot the OS",  font="none 12 bold")
+        reboot_lbl.grid(row=11, column=0, sticky=W, pady=8, padx = 10)
         
         ######## BUTTONS ########
 
-        sound_btn = Button(root_win,image= sound_toggle_img,borderwidth=0,command= toggle_json_sound)
+        sound_btn = Button(Administrator_win,image= sound_toggle_img,borderwidth=0,command= toggle_json_sound)
         sound_btn.grid(row=1, column=2,sticky = E,padx = 10, pady=8)
         sound_btn.image= sound_toggle_img
 
-        color_btn = Button(root_win,image= color_toggle_img,borderwidth=0,command = toggle_json_color)
+        color_btn = Button(Administrator_win,image= color_toggle_img,borderwidth=0,command = toggle_json_color)
         color_btn.grid(row=3, column=2,sticky = E,padx = 10, pady=8)
         color_btn.image= color_toggle_img
 
-        language_btn = Button(root_win,image= language_toggle_img,borderwidth=0,command=toggle_json_language)
+        language_btn = Button(Administrator_win,image= language_toggle_img,borderwidth=0,command=toggle_json_language)
         language_btn.grid(row=5, column=2,sticky = E,padx = 10, pady=8)
         language_btn.image= language_toggle_img
 
-        GDM_btn=Button(root_win,overrelief = SUNKEN,image = start_img,borderwidth=0,                  
-                    command=lambda:[root_win.destroy(),run_gdm()])            
-        GDM_btn.grid(row=7, column=2,sticky = E,padx = 10, pady=8)
-        GDM_btn.image= start_img
-        
-        close_btn=Button(root_win,image = close_img,borderwidth= 0,
+        close_btn=Button(Administrator_win,image = close_img,borderwidth= 0,
                     command = window.destroy)                
-        close_btn.grid(row=9, column=2,sticky = E,padx = 10, pady=8)
+        close_btn.grid(row=7, column=2,sticky = E,padx = 10, pady=8)
         close_btn.image=close_img
 
-        change_btn=Button(root_win,image = change_img,borderwidth= 0,
-                    command=lambda:[root_win.destroy(),change_password()]) 
-        change_btn.grid(row=11, column=2,sticky = E,padx = 10, pady=8)
+        change_btn=Button(Administrator_win,image = change_img,borderwidth= 0,
+                    command=lambda:[Administrator_win.destroy(),change_password()]) 
+        change_btn.grid(row=9, column=2,sticky = E,padx = 10, pady=8)
         change_btn.image = change_img
         
-        reboot_btn=Button(root_win,image=reboot_img,borderwidth=0,
-                    command=lambda:[root_win.destroy(),reboot_sys()]) 
-        reboot_btn.grid(row=13, column=2,sticky = E,padx = 10, pady=8)
+        reboot_btn=Button(Administrator_win,image=reboot_img,borderwidth=0,
+                    command=lambda:[Administrator_win.destroy(),reboot_sys()]) 
+        reboot_btn.grid(row=11, column=2,sticky = E,padx = 10, pady=8)
         reboot_btn.image= reboot_img
-    #### check root password ####
+
+        Administrator_win.protocol('WM_DELETE_WINDOW',confirm_change)
+
+    ################################################################
+
+    ##################### check root password #######################
     def check_administrator_window():
         global count
         count = 0
@@ -518,17 +517,17 @@ def main():
                                             overrelief = SUNKEN,
                                             command=check_root_win.destroy)
         close_button.grid(row=3, column=3, sticky = W )
+    ##############################################################
 
-    ##### Shut down window ######  
+    ######################## Shut down window #####################  
     def shutdown_window():
         confirm_win = Toplevel(window)
         confirm_win.title('Shut down window')
         confirm_win.geometry("%dx%d" % (screen_width,screen_height))
         confirm_win.attributes('-fullscreen',True)
         confirm_win.resizable(0,0)
-        #confirm_win.configure(bg=COLOR_BG)
-        confirm_win.resizable(0,0)  
-        #Buttons
+
+        ######### Buttons ##########
         #ok button
         ok_btn =Button(confirm_win,  bd=5,overrelief = SUNKEN,
                     image=img_shutdown_resized,background=SHUTDOWN_BACKGROUND,
@@ -544,36 +543,27 @@ def main():
                         command=confirm_win.destroy)
         cancel_btn.image=image_cancel_resized
     
-        #root button 
-        root_btn=Button(confirm_win, text='Settings',
+        #settings button 
+        settings_btn=Button(confirm_win, text='Settings',
                         font=('Times', 20),
-                        fg="#7d2811",bd=0,bg = COLOR_BG,
-                        activebackground=COLOR_BG,
+                        bd=0,bg = CANCEL_BACKGROUND,
+                        activebackground=CANCEL_ACTIVEBACKGROUND,
                         command=lambda:[confirm_win.destroy(),check_administrator_window()])   #run two functions
-        
-    
 
-        
-        root_btn.grid(row = 0, column = 0,sticky = W)
-        ok_btn.place(x=0,y=screen_height/4)
+        settings_btn.grid(row = 0, column = 0,sticky = W)
+        ok_btn.place(x = x_side,y=screen_height/4)
         cancel_btn.place(x= screen_width/2,y=screen_height/4)    
         ok_btn.bind('<Enter>',play_shutdown)
         cancel_btn.bind('<Enter>',play_cancel)
 
+    ########################################################
 
-    '''
-    Import images for desktop
-    '''
-
-
-
-
-    #Button on desktop
+    ############### Button on desktop ########################
 
     swebButton=Button(window,image = img_sweb_resized,
                         activebackground=SWEB_ACTIVEBACKGROUND,background=SWEB_BACKGROUND,
                         bd=5,overrelief = SUNKEN,
-                        command=window.destroy) #browser_window
+                        command=sweb_window) 
 
 
     smailButton=Button(window,image =img_smail_resized,
@@ -590,18 +580,19 @@ def main():
                     activebackground=SHUTDOWN_ACTIVEBACKGROUND,background=SHUTDOWN_BACKGROUND,
                     overrelief = SUNKEN,
                     bd=5,command=shutdown_window)
-                    
-    shutdownButton.place(x=screen_width/2,y=screen_height/2)                  
-    smailButton.place(x=screen_width/2,y=0)
-    stextButton.place(x=0,y=screen_height/2)                  
-    swebButton.place(x=0,y=0)
-    #Sound event
+    swebButton.grid(row = 0, column= 0, padx = x_side , pady = y_side)
+    stextButton.grid(row = 0, column= 1)
+    smailButton.grid(row = 1, column= 0)
+    shutdownButton.grid(row = 1, column= 1)
+    
 
     smailButton.bind('<Enter>',play_smail)
     stextButton.bind('<Enter>',play_stext)
     swebButton.bind('<Enter>',play_sweb)
     shutdownButton.bind('<Enter>',play_shutdown)
 
+
+################ main ##################
     window.mainloop()
 if __name__ == "__main__":
    main()
