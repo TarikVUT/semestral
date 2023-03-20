@@ -16,7 +16,7 @@ import string
 
 def main():
 
-    os.chdir("/home/stext")
+    os.chdir("/home/sapp")
     COLOR_BG = "#D3D3D3"
 
     ############# Create the window ###############

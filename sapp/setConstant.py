@@ -2,7 +2,6 @@
 Author : Tarik Alkanan 
 '''
 import json
-from test import *
 import os
 pwd_json = os.getcwd()
 json_file = open(pwd_json+'/mainConstants.json')
