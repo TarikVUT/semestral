@@ -3,6 +3,7 @@ Author : Tarik Alkanan
 '''
 import json
 import os
+os.chdir("/home/sapp")
 pwd_json = os.getcwd()
 json_file = open(pwd_json+'/mainConstants.json')
 load_file = json.load(json_file)
