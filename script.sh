@@ -47,11 +47,14 @@ then
 	check_command_success "virtualenv /home/smail/env" "create smail env"
 	
 	check_command_success "sudo chown -R $user /home/sapp /home/stext /home/sweb /home/smail" "Change owner"
-
+	#install needed packages for stext app
 	source /home/stext/env/bin/activate && pip install pyqt5 xhtml2pdf  bs4 markdown && deactivate
+	#install needed packages for sapp app
 	source /home/sapp/env/bin/activate && pip install pillow pygame && dnf install python3-tkinter -y && deactivate
-	source /home/sapp/env/bin/activate && dnf install python3-tkinter -y && deactivate
-	source /home/sapp/env/bin/activate && dnf install python3-tkinter -y && deactivate
+	#install needed packages for sweb app
+	source /home/sweb/env/bin/activate && dnf install python3-tkinter -y && deactivate
+	#install needed packages for smail app
+	source /home/smail/env/bin/activate && dnf install python3-tkinter -y && deactivate
 	
 	
 	#Create autostart file to run sapp
@@ -60,13 +63,6 @@ then
 	passwd -d $user
 	
 	init 6
-	
-	#/home/sapp/env/bin/python /home/sapp/main.py
-
-	#pip install pillow pygame ,pyqt5 xhtml2pdf  bs4 markdown
-	
-	
-	
 	
 	# disable window button
 
