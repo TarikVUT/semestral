@@ -4,7 +4,7 @@ user=$(echo $SUDO_USER)
 dir_to_install="/home/"$user
 echo The user is $user
 echo Installation direction $dir_to_install
-dnf update
+dnf update -y
 check_command_success(){
 
 command_run="$1"
@@ -49,9 +49,9 @@ then
 	check_command_success "sudo chown -R $user /home/sapp /home/stext /home/sweb /home/smail" "Change owner"
 
 	source /home/stext/env/bin/activate && pip install pyqt5 xhtml2pdf  bs4 markdown && deactivate
-	source /home/sapp/env/bin/activate && pip install pillow pygame && dnf install python3-tkinter && deactivate
-	source /home/sapp/env/bin/activate && dnf install python3-tkinter && deactivate
-	source /home/sapp/env/bin/activate && dnf install python3-tkinter && deactivate
+	source /home/sapp/env/bin/activate && pip install pillow pygame && dnf install python3-tkinter -y && deactivate
+	source /home/sapp/env/bin/activate && dnf install python3-tkinter -y && deactivate
+	source /home/sapp/env/bin/activate && dnf install python3-tkinter -y && deactivate
 	
 	
 	#Create autostart file to run sapp
