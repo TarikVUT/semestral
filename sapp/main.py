@@ -1,7 +1,7 @@
 '''
 Author : Tarik Alkanan 
 '''
-import os
+import os, sys
 from tkinter import *
 from Constants import *
 from setConstant import *
@@ -344,7 +344,8 @@ def main():
             Administrator_win.destroy()
             message_box = messagebox.askquestion("Confirm", "Would you like to confirm changes")
             if message_box == "yes":
-                sapp_window()
+                python = sys.executable
+                os.execl(python, python, *sys.argv)
             
 
 
