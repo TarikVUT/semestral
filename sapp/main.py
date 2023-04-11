@@ -40,7 +40,10 @@ def main():
     # shutdown function
     def shutdown_system():  
         os.system("shutdown now -h")
-        
+    
+    #enable window key
+    def enable_window_key():
+        os.system("gsettings set org.gnome.mutter overlay-key 'Super'")
     # function to reboot the system
     def reboot_sys():
         os.system('reboot')
@@ -421,7 +424,7 @@ def main():
         language_btn.image= language_toggle_img
 
         close_btn=Button(Administrator_win,image = close_img,borderwidth= 0,
-                    command = window.destroy)                
+                    command = lambda:[enable_window_key(), window.destroy()])                
         close_btn.grid(row=7, column=2,sticky = E,padx = 10, pady=8)
         close_btn.image=close_img
 
@@ -592,7 +595,7 @@ def main():
     swebButton.bind('<Enter>',play_sweb)
     shutdownButton.bind('<Enter>',play_shutdown)
 
-
+    os.system("gsettings set org.gnome.mutter overlay-key ''")
 ################ main ##################
     window.mainloop()
 if __name__ == "__main__":

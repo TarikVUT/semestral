@@ -77,16 +77,38 @@ else
 
 fi
 }
+auto_login_to_gnome(){
+custom_path="/etc/gdm/custom.conf"
+Config1="AutomaticLoginEnable=true"
+Config2="AutomaticLogin=$user"
 
-
-if [ -f /etc/debian_version ]
-then	
-	set_autologin_debian_to_user(){
+if [ -f $custom_path ]
+then
+	echo "File custom  found"
 	
+	if grep -E "$Config1" $custom_path && grep -E "$Config2" $custom_path 
+	then
 
-		sed 's/# Enabling automatic login/# Enabling automatic login\n  AutomaticLoginEnable = true\n  	AutomaticLogin = $user/' /etc/gdm3/daemon.conf > temp
-		mv temp /etc/gdm3/daemon.con
-		}
+	echo "The autoLogin was setted"
+
+	else
+
+	echo "Set auto login"
+	echo "[daemon]
+AutomaticLoginEnable=true
+AutomaticLogin=$user" >> $custom_path
+	fi
+fi
+
+
+
+}
+
+if [ "$(uname -s)" == "Linux" ]
+then 
+    if [ -f /etc/debian_version ]
+      then	
+
         echo "The running operating system is Debian"
         #install git
         check_command_success "apt-get install git" "Install git"
@@ -142,9 +164,71 @@ then
 	
 	
 	
-elif [ -f /etc/fedora-release ]
-then
+    elif [ -f /etc/fedora-release ]
+       then
 	echo "The running operating system is Fedora"
+        #install virtualenv for python
+        check_command_success "sudo dnf install virtualenv -y" "Install virtualenv"
+        
+        #check if the Senior system was installed
+        check_if_system_exists
+        #check if the source code from Github is downloaded
+	check_if_os_exists
+	
+	#Download source from Githut
+	check_command_success "git clone https://github.com/TarikVUT/semestral.git /tmp/$new_dir" "Download seniorOS"
+	#check_command_success "git clone -b sapp https://github.com/forsenior/os.git $dir_to_install/OS" "sapp"
+	#exit 0
+	
+	#check if sapp, stext, sweb, smail are exist
+	
+
+	
+	#Move sapp,stext to /home/
+	check_command_success "sudo mv /tmp/$new_dir/sapp /home" "move sapp to /home"
+	check_command_success "sudo mv /tmp/$new_dir/stext /home" "move stext to /home"
+	check_command_success "sudo mv /tmp/$new_dir/sweb /home" "move sweb to /home"
+	check_command_success "sudo mv /tmp/$new_dir/smail /home" "move smail to /home"
+	
+	#Create virtual env inside sapp,stext,sweb,smail.
+	check_command_success "virtualenv /home/sapp/env" "Create sapp env"
+	check_command_success "virtualenv /home/stext/env" "Create stext env"
+	check_command_success "virtualenv /home/sweb/env" "Create sweb env"
+	check_command_success "virtualenv /home/smail/env" "Create smail env"
+	
+	#Change OS owner
+	check_command_success "sudo chown -R $user /home/sapp /home/stext /home/sweb /home/smail" "Change owner to $user"
+	
+	#install needed packages for stext app
+	source /home/stext/env/bin/activate && pip install pyqt5 xhtml2pdf  bs4 markdown && deactivate
+	#install needed packages for sapp app
+	source /home/sapp/env/bin/activate && pip install pillow pygame && dnf install python3-tkinter -y && deactivate
+	#install needed packages for sweb app
+	source /home/sweb/env/bin/activate && dnf install python3-tkinter -y && deactivate
+	#install needed packages for smail app
+	source /home/smail/env/bin/activate && dnf install python3-tkinter -y && deactivate
+	
+	
+	#Create autostart file to run sapp
+	mkdir -p /home/$user/.config/autostart && echo -e "[Desktop Entry]\nType=Application\nName=Pyapp\nExec=/home/sapp/env/bin/python /home/sapp/main.py\nTerminal=false" >/home/$user/.config/autostart/autostart.desktop && chmod +x /home/$user/.config/autostart/autostart.desktop
+	check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
+	#Allow the user to automatically log in to their account without having to manually enter their username and password
+	auto_login_to_gnome
+	
+	echo "Need to restart? [y/N] " 
+	read answer
+	 
+	if [ "$answer" = "y" ]
+	then
+		reboot
+	else
+		echo "The App will start after first restart"
+	fi
+	     
+
+  elif [ -f /etc/centos-release ]
+     then	
+	echo "The running operating system is CentOS"
         #install virtualenv for python
         check_command_success "sudo dnf install virtualenv -y" "Install virtualenv"
         
@@ -192,11 +276,19 @@ then
 	check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
 	. /home/sapp/env/bin/activate && python /home/sapp/main.py
 
-	
-else
+    elif [ -f /etc/sfeserelease ]
+      then	
+      	echo "ERROR"
+      		
+    else
         echo "ERROR"
+        
+    fi
+    
+else
+    echo "The System is not Linux"
+    
 fi
-
 
 
 
