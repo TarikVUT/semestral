@@ -1,5 +1,9 @@
 '''
-Author : Tarik Alkanan 
+==============================================
+| Srun (SeniorOS)                            |
+| Author : Tarik Alkanan (xalkan02@vutbr.cz) |
+| Date 11.04.2023                            |
+==============================================
 '''
 import os, sys
 from tkinter import *
@@ -187,8 +191,7 @@ def main():
             username = username_box.get()
             password = pw_box.get()
             confirmed_pw = pw_confirm_box.get()
-            file_user= open("/home/sapp/users.txt", "r+")
-            user_from_file=file_user.read()
+
             caps = string.ascii_uppercase
             numbers = []
             for i in range(10):
@@ -219,8 +222,12 @@ def main():
                 return found
 
         
-            if username != user_from_file[:-1]:
-                output_info.configure(text="Invalid user",font="green 15 bold")
+            if len(username) < 4:
+                output_info.configure(text="New user name must be longer than 3 letters",font="green 15 bold")
+                username_box.delete(0,'end')
+                return
+            if not username.isalpha():
+                output_info.configure(text="Please use only letters for Username",font="green 15 bold")
                 username_box.delete(0,'end')
                 return
             if password != confirmed_pw and len(password) > 7:
@@ -243,12 +250,16 @@ def main():
                 output_info.configure(text="Password must be at least 8 characters long")
                 clear_entry_password()
                 return
-
-            file_pass = open("/home/sapp/test.txt", "w")
-            file_pass.writelines(hash_fun(password))
-            file_pass.close()  
+            with open(pwd_json+'/user_data.json') as f:
+                data_user = json.load(f)
+            
+            data_user["user"] = username
+            data_user["password"] = hash_fun(password)
+            with open(pwd_json+'/user_data.json', 'w') as f:
+                json.dump(data_user, f)
+ 
             change_password_win.destroy()
-            messagebox.showinfo("info", "Password change was successful")
+            messagebox.showinfo("info", "User and Password changed successful")
 
         change_password_win = Toplevel(window)
         change_password_win.title("Set new password")
@@ -256,7 +267,7 @@ def main():
         change_password_win.configure(bg=COLOR_BG)
         change_password_win.resizable(0,0)
 
-        user_lbl = Label(change_password_win, text="Enter your username:", bg=COLOR_BG, font="none 12 bold")
+        user_lbl = Label(change_password_win, text="Enter your new username:", bg=COLOR_BG, font="none 12 bold")
         user_lbl.grid(row=1, column=0, sticky=EW, pady=8)
         pass_lbl = Label(change_password_win, text="Enter your password:", bg=COLOR_BG, font="none 12 bold")
 
@@ -453,18 +464,18 @@ def main():
         def get_data(): 
             global count
             count =count + 1
-            file_users= open("/home/sapp/users.txt", "r")
-            file_passwords= open("/home/sapp/passwords.txt", "r")
+            with open(pwd_json+'/user_data.json') as f:
+                data_user = json.load(f)
+            
             #get values from files
-            users_from_file = file_users.read()
-            passwords_from_file=file_passwords.read()
-            file_passwords.close()
-            file_users.close()
+            users_from_file = data_user["user"]
+            passwords_from_file=data_user["password"]
+
         
             #Get values from entry
             username= check_username.get()
             password=check_password.get() 
-            if users_from_file[:-1] == username and passwords_from_file[:-1] == hash_fun(password):
+            if users_from_file == username and passwords_from_file == hash_fun(password):
                 check_root_win.destroy()
                 administrator_window()
                 return
@@ -595,7 +606,7 @@ def main():
     swebButton.bind('<Enter>',play_sweb)
     shutdownButton.bind('<Enter>',play_shutdown)
 
-    os.system("gsettings set org.gnome.mutter overlay-key ''")
+    #os.system("gsettings set org.gnome.mutter overlay-key ''")
 ################ main ##################
     window.mainloop()
 if __name__ == "__main__":
