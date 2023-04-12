@@ -98,7 +98,9 @@ chmod +x /home/$user/.config/autostart/autostart.desktop
 #function to add below commands to custom.conf file, to enable auto-login 
 #without the need for a username and password
 auto_login_to_gnome(){
-custom_path="/etc/gdm/custom.conf"
+gdm="$1"
+custom="$2"
+custom_path="/etc/$gdm/$custom"
 Config1="AutomaticLoginEnable=true"
 Config2="AutomaticLogin=$user"
 
@@ -122,7 +124,7 @@ AutomaticLogin=$user" >> $custom_path
 else
 	#ask user to create custom.conf file, if it is not exist
 	echo "File custom NOT found,
-	 Create custom.conf file in directory /etc/gdn/, and run this script again"
+	 Create custom.conf file in directory /etc/$gdm/$custom, and run this script again"
 	 exit 0
 fi
 }
@@ -142,21 +144,22 @@ echo "Need to restart? [y/N] "
 }
 
 #check if the Operating system is Linux
-if [ "$(uname -s)" == "Linux" ]
+if [ "$(uname -s)" = "Linux" ]
 then 
 	#if the distribution is Debian
     if [ -f /etc/debian_version ]
       then	
         echo "The running operating system is Debian"
 		#update the system
-		apt-get update -y
+		#apt-get update -y
 
        		#install git
-	        check_command_success "apt-get install git" "Install git"
+	        check_command_success "apt-get install git -y" "Install git"
 	
 	        #install virtualenv for python
-	        check_command_success "apt-get install python3-virtualenv" "Install virtualenv"
-
+	        check_command_success "apt-get install python3-virtualenv -y" "Install virtualenv"
+		#install package libqt5gui5
+		apt install libqt5gui5 -y
 	        #check if the Senior system was installed
         	check_if_system_exists 
 
@@ -197,7 +200,7 @@ then
 		#change autostart owner
 		check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
 		#Allow the user to automatically log in to their account without having to manually enter their username and password
-		auto_login_to_gnome
+		auto_login_to_gnome "gdm3" "daemon.conf"
 		#ask for restart
 		request_restart
 	
@@ -250,7 +253,7 @@ then
 		#change autostart owner
 		check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
 		#Allow the user to automatically log in to their account without having to manually enter their username and password
-		auto_login_to_gnome
+		auto_login_to_gnome "gdm" "custom.conf"
 		#ask for restart
 		request_restart
 	
@@ -304,7 +307,7 @@ then
 		#change autostart owner
 		check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
 		#Allow the user to automatically log in to their account without having to manually enter their username and password
-		auto_login_to_gnome
+		auto_login_to_gnome "gdm" "custom.conf"
 		#ask for restart
 		request_restart
 	   
