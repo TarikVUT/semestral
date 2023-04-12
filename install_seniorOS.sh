@@ -1,30 +1,35 @@
 #!/bin/bash
-
+#user who run the script
 user=$(echo $SUDO_USER)
+#installation directory
 dir_to_install="/home/"$user
 echo The user is $user
 echo Installation direction $dir_to_install
-#dnf update -y
 
+#function to check if the command passed or not
 check_command_success(){
+#first input
 command_run="$1"
+#second input
 message_to_user="$2"
-
+#run the first input(command)
 $command_run
-
+#check if the command passed (0), or not (!0)
 if [ $? -eq 0 ]	
 then
-	echo  "\n--->  $message_to_user was successful <---"
+	echo  "--->  $message_to_user was successful <---"
 else
-	echo  "\n***  $message_to_user failed :( ***"
+	echo  "***  $message_to_user failed :( ***"
 	exit 0
 fi
 }
 
+#function to check if the OS folder exists in directory /tmp
+#if yes -> download the github repository with name OS1....
 check_if_os_exists(){
 
 downloaded_file="OS"
-
+#is "/tmp/OS" exists
 if [ -e "/tmp/$downloaded_file" ]
 then
 	i=1
@@ -42,6 +47,7 @@ fi
 
 }
 
+#function to delete old folders, in case install the Srun again
 delete_existing_dir(){
 dis_dir="$1"
 
@@ -51,19 +57,19 @@ then
 fi
 }
 
-
+#function to if the system is already installed, and ask for replace it.
 check_if_system_exists(){
 
-if [ -e "/home/sapp" ]
+if [ -e "/home/srun" ]
 then
-	echo "\nOne of the diractories: \n(/home/sapp or /home/smail or /home/stext or /home/sweb) exists."
+	echo "\nOne of the diractories: \n(/home/srun or /home/smail or /home/stext or /home/sweb) exists."
 	echo "Do you want to replace it? [y/N] " 
 	read confirmation
-	 
+	#if yes, delete the old directories
 	if [ "$confirmation" = "y" ]
 		then
 			echo "The old folder will be replaced"
-				delete_existing_dir "sapp"
+				delete_existing_dir "srun"
 				delete_existing_dir "stext"
 				delete_existing_dir "sweb"
 				delete_existing_dir "smail"
@@ -77,15 +83,30 @@ else
 
 fi
 }
+
+#function to auto-start srun after login
+#by creating autostart in ~.config
+auto_start_srun(){
+mkdir -p /home/$user/.config/autostart && echo "[Desktop Entry]
+Type=Application
+Name=Pyapp
+Exec=/home/srun/env/bin/python /home/srun/main.py
+Terminal=false" >/home/$user/.config/autostart/autostart.desktop
+chmod +x /home/$user/.config/autostart/autostart.desktop
+
+}
+#function to add below commands to custom.conf file, to enable auto-login 
+#without the need for a username and password
 auto_login_to_gnome(){
 custom_path="/etc/gdm/custom.conf"
 Config1="AutomaticLoginEnable=true"
 Config2="AutomaticLogin=$user"
 
+#if the file custom.conf exists
 if [ -f $custom_path ]
 then
 	echo "File custom  found"
-	
+	#prevent setting auto-login twoic
 	if grep -E "$Config1" $custom_path && grep -E "$Config2" $custom_path 
 	then
 
@@ -98,124 +119,18 @@ then
 AutomaticLoginEnable=true
 AutomaticLogin=$user" >> $custom_path
 	fi
+else
+	#ask user to create custom.conf file, if it is not exist
+	echo "File custom NOT found,
+	 Create custom.conf file in directory /etc/gdn/, and run this script again"
+	 exit 0
 fi
-
-
-
 }
 
-if [ "$(uname -s)" == "Linux" ]
-then 
-    if [ -f /etc/debian_version ]
-      then	
+#function ask user to restart the system
+request_restart(){
 
-        echo "The running operating system is Debian"
-        #install git
-        check_command_success "apt-get install git" "Install git"
-        #install virtualenv for python
-        check_command_success "apt-get install python3-virtualenv" "Install virtualenv"
-        
-        #check if the Senior system was installed
-        check_if_system_exists
-        
-        #check if the source code from Github is downloaded
-	check_if_os_exists
-	
-	#Download source from Githut
-	check_command_success "git clone https://github.com/TarikVUT/semestral.git /tmp/$new_dir" "Download seniorOS"
-	#check_command_success "git clone -b sapp https://github.com/forsenior/os.git $dir_to_install/OS" "sapp"
-	#exit 0
-	
-	#Move sapp,stext to /home/
-	check_command_success "sudo mv /tmp/$new_dir/sapp /home" "move sapp to /home"
-	check_command_success "sudo mv /tmp/$new_dir/stext /home" "move stext to /home"
-	check_command_success "sudo mv /tmp/$new_dir/sweb /home" "move sweb to /home"
-	check_command_success "sudo mv /tmp/$new_dir/smail /home" "move smail to /home"
-	
-	#Create virtual env inside sapp,stext,sweb,smail.
-	check_command_success "virtualenv /home/sapp/env" "Create sapp env"
-	check_command_success "virtualenv /home/stext/env" "Create stext env"
-	check_command_success "virtualenv /home/sweb/env" "Create sweb env"
-	check_command_success "virtualenv /home/smail/env" "Create smail env"
-	
-	#Change OS owner
-	check_command_success "sudo chown -R $user /home/sapp /home/stext /home/sweb /home/smail" "Change owner to $user"
-	
-	#install needed packages for stext app
-	. /home/stext/env/bin/activate && pip install pyqt5 xhtml2pdf  bs4 markdown && deactivate
-	#install needed packages for sapp app
-	. /home/sapp/env/bin/activate && pip install pillow pygame && apt-get install python3-tk -y && deactivate
-	#install needed packages for sweb app
-	. /home/sweb/env/bin/activate && apt-get install python3-tk -y && deactivate
-	#install needed packages for smail app
-	. /home/smail/env/bin/activate && apt-get install python3-tk -y && deactivate
-	
-	
-	#Create autostart file to run sapp
-	mkdir -p /home/$user/.config/autostart && echo "[Desktop Entry]\nType=Application\nName=Pyapp\nExec=/home/sapp/env/bin/python /home/sapp/main.py\nTerminal=false" >/home/$user/.config/autostart/autostart.desktop && chmod +x /home/$user/.config/autostart/autostart.desktop
-	check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
-	#set autologin
-	##################set_autologin_debian_to_user
-	. /home/sapp/env/bin/activate && python /home/sapp/main.py
-	
-	# disable window button
-	
-	
-	
-	
-	
-    elif [ -f /etc/fedora-release ]
-       then
-	echo "The running operating system is Fedora"
-        #install virtualenv for python
-        check_command_success "sudo dnf install virtualenv -y" "Install virtualenv"
-        
-        #check if the Senior system was installed
-        check_if_system_exists
-        #check if the source code from Github is downloaded
-	check_if_os_exists
-	
-	#Download source from Githut
-	check_command_success "git clone https://github.com/TarikVUT/semestral.git /tmp/$new_dir" "Download seniorOS"
-	#check_command_success "git clone -b sapp https://github.com/forsenior/os.git $dir_to_install/OS" "sapp"
-	#exit 0
-	
-	#check if sapp, stext, sweb, smail are exist
-	
-
-	
-	#Move sapp,stext to /home/
-	check_command_success "sudo mv /tmp/$new_dir/sapp /home" "move sapp to /home"
-	check_command_success "sudo mv /tmp/$new_dir/stext /home" "move stext to /home"
-	check_command_success "sudo mv /tmp/$new_dir/sweb /home" "move sweb to /home"
-	check_command_success "sudo mv /tmp/$new_dir/smail /home" "move smail to /home"
-	
-	#Create virtual env inside sapp,stext,sweb,smail.
-	check_command_success "virtualenv /home/sapp/env" "Create sapp env"
-	check_command_success "virtualenv /home/stext/env" "Create stext env"
-	check_command_success "virtualenv /home/sweb/env" "Create sweb env"
-	check_command_success "virtualenv /home/smail/env" "Create smail env"
-	
-	#Change OS owner
-	check_command_success "sudo chown -R $user /home/sapp /home/stext /home/sweb /home/smail" "Change owner to $user"
-	
-	#install needed packages for stext app
-	source /home/stext/env/bin/activate && pip install pyqt5 xhtml2pdf  bs4 markdown && deactivate
-	#install needed packages for sapp app
-	source /home/sapp/env/bin/activate && pip install pillow pygame && dnf install python3-tkinter -y && deactivate
-	#install needed packages for sweb app
-	source /home/sweb/env/bin/activate && dnf install python3-tkinter -y && deactivate
-	#install needed packages for smail app
-	source /home/smail/env/bin/activate && dnf install python3-tkinter -y && deactivate
-	
-	
-	#Create autostart file to run sapp
-	mkdir -p /home/$user/.config/autostart && echo -e "[Desktop Entry]\nType=Application\nName=Pyapp\nExec=/home/sapp/env/bin/python /home/sapp/main.py\nTerminal=false" >/home/$user/.config/autostart/autostart.desktop && chmod +x /home/$user/.config/autostart/autostart.desktop
-	check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
-	#Allow the user to automatically log in to their account without having to manually enter their username and password
-	auto_login_to_gnome
-	
-	echo "Need to restart? [y/N] " 
+echo "Need to restart? [y/N] " 
 	read answer
 	 
 	if [ "$answer" = "y" ]
@@ -224,69 +139,177 @@ then
 	else
 		echo "The App will start after first restart"
 	fi
-	     
+}
 
-  elif [ -f /etc/centos-release ]
-     then	
-	echo "The running operating system is CentOS"
+#check if the Operating system is Linux
+if [ "$(uname -s)" == "Linux" ]
+then 
+	#if the distribution is Debian
+    if [ -f /etc/debian_version ]
+      then	
+        echo "The running operating system is Debian"
+		#update the system
+		apt-get update -y
+
+        #install git
+        check_command_success "apt-get install git" "Install git"
+
+        #install virtualenv for python
+        check_command_success "apt-get install python3-virtualenv" "Install virtualenv"
+
+        #check if the Senior system was installed
+        check_if_system_exists 
+
+        #check if the source code from Github is downloaded
+		check_if_os_exists
+
+		#Download source code from Githut
+		check_command_success "git clone https://github.com/TarikVUT/semestral.git /tmp/$new_dir" "Download seniorOS"
+		#check_command_success "git clone -b srun https://github.com/forsenior/os.git $dir_to_install/OS" "srun"
+	
+		#Move srun, stext, sweb, smail to /home/
+		check_command_success "sudo mv /tmp/$new_dir/srun /home" "move srun to /home"
+		check_command_success "sudo mv /tmp/$new_dir/stext /home" "move stext to /home"
+		check_command_success "sudo mv /tmp/$new_dir/sweb /home" "move sweb to /home"
+		check_command_success "sudo mv /tmp/$new_dir/smail /home" "move smail to /home"
+	
+		#Create virtual env inside srun,stext,sweb,smail.
+		check_command_success "virtualenv /home/srun/env" "Create srun env"
+		check_command_success "virtualenv /home/stext/env" "Create stext env"
+		check_command_success "virtualenv /home/sweb/env" "Create sweb env"
+		check_command_success "virtualenv /home/smail/env" "Create smail env"
+	
+		#change OS owner
+		check_command_success "sudo chown -R $user /home/srun /home/stext /home/sweb /home/smail" "Change owner to $user"
+	
+		#install needed packages for stext app
+		. /home/stext/env/bin/activate && pip install pyqt5 xhtml2pdf  bs4 markdown && deactivate
+		#install needed packages for srun app
+		. /home/srun/env/bin/activate && pip install pillow pygame && apt-get install python3-tk -y && deactivate
+		#install needed packages for sweb app
+		. /home/sweb/env/bin/activate && apt-get install python3-tk -y && deactivate
+		#install needed packages for smail app
+		. /home/smail/env/bin/activate && apt-get install python3-tk -y && deactivate
+	
+		#Create autostart file to run srun
+		auto_start_srun
+
+		#change autostart owner
+		check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
+		#Allow the user to automatically log in to their account without having to manually enter their username and password
+		auto_login_to_gnome
+		#ask for restart
+		request_restart
+	
+	
+    elif [ -f /etc/fedora-release ]
+       then
+		echo "The running operating system is Fedora"
+		#update the system
+		dnf update -y
+
         #install virtualenv for python
         check_command_success "sudo dnf install virtualenv -y" "Install virtualenv"
         
         #check if the Senior system was installed
         check_if_system_exists
         #check if the source code from Github is downloaded
-	check_if_os_exists
+		check_if_os_exists
 	
-	#Download source from Githut
-	check_command_success "git clone https://github.com/TarikVUT/semestral.git /tmp/$new_dir" "Download seniorOS"
-	#check_command_success "git clone -b sapp https://github.com/forsenior/os.git $dir_to_install/OS" "sapp"
-	#exit 0
+		#Download source from Githut
+		check_command_success "git clone https://github.com/TarikVUT/semestral.git /tmp/$new_dir" "Download seniorOS"
+		#check_command_success "git clone -b srun https://github.com/forsenior/os.git $dir_to_install/OS" "srun"
 	
-	#check if sapp, stext, sweb, smail are exist
+		#Move srun, stext, sweb, smail to /home/
+		check_command_success "sudo mv /tmp/$new_dir/srun /home" "move srun to /home"
+		check_command_success "sudo mv /tmp/$new_dir/stext /home" "move stext to /home"
+		check_command_success "sudo mv /tmp/$new_dir/sweb /home" "move sweb to /home"
+		check_command_success "sudo mv /tmp/$new_dir/smail /home" "move smail to /home"
+	
+		#Create virtual env inside srun,stext,sweb,smail.
+		check_command_success "virtualenv /home/srun/env" "Create srun env"
+		check_command_success "virtualenv /home/stext/env" "Create stext env"
+		check_command_success "virtualenv /home/sweb/env" "Create sweb env"
+		check_command_success "virtualenv /home/smail/env" "Create smail env"
+	
+		#Change OS owner
+		check_command_success "sudo chown -R $user /home/srun /home/stext /home/sweb /home/smail" "Change owner to $user"
+	
+		#install needed packages for stext app
+		source /home/stext/env/bin/activate && pip install pyqt5 xhtml2pdf  bs4 markdown && deactivate
+		#install needed packages for srun app
+		source /home/srun/env/bin/activate && pip install pillow pygame && dnf install python3-tkinter -y && deactivate
+		#install needed packages for sweb app
+		source /home/sweb/env/bin/activate && dnf install python3-tkinter -y && deactivate
+		#install needed packages for smail app
+		source /home/smail/env/bin/activate && dnf install python3-tkinter -y && deactivate
+	
+	
+		#Create autostart file to run srun
+		auto_start_srun
+		#change autostart owner
+		check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
+		#Allow the user to automatically log in to their account without having to manually enter their username and password
+		auto_login_to_gnome
+		#ask for restart
+		request_restart
+	
 	
 
-	
-	#Move sapp,stext to /home/
-	check_command_success "sudo mv /tmp/$new_dir/sapp /home" "move sapp to /home"
-	check_command_success "sudo mv /tmp/$new_dir/stext /home" "move stext to /home"
-	check_command_success "sudo mv /tmp/$new_dir/sweb /home" "move sweb to /home"
-	check_command_success "sudo mv /tmp/$new_dir/smail /home" "move smail to /home"
-	
-	#Create virtual env inside sapp,stext,sweb,smail.
-	check_command_success "virtualenv /home/sapp/env" "Create sapp env"
-	check_command_success "virtualenv /home/stext/env" "Create stext env"
-	check_command_success "virtualenv /home/sweb/env" "Create sweb env"
-	check_command_success "virtualenv /home/smail/env" "Create smail env"
-	
-	#Change OS owner
-	check_command_success "sudo chown -R $user /home/sapp /home/stext /home/sweb /home/smail" "Change owner to $user"
-	
-	#install needed packages for stext app
-	source /home/stext/env/bin/activate && pip install pyqt5 xhtml2pdf  bs4 markdown && deactivate
-	#install needed packages for sapp app
-	source /home/sapp/env/bin/activate && pip install pillow pygame && dnf install python3-tkinter -y && deactivate
-	#install needed packages for sweb app
-	source /home/sweb/env/bin/activate && dnf install python3-tkinter -y && deactivate
-	#install needed packages for smail app
-	source /home/smail/env/bin/activate && dnf install python3-tkinter -y && deactivate
-	
-	
-	#Create autostart file to run sapp
-	mkdir -p /home/$user/.config/autostart && echo -e "[Desktop Entry]\nType=Application\nName=Pyapp\nExec=/home/sapp/env/bin/python /home/sapp/main.py\nTerminal=false" >/home/$user/.config/autostart/autostart.desktop && chmod +x /home/$user/.config/autostart/autostart.desktop
-	check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
-	. /home/sapp/env/bin/activate && python /home/sapp/main.py
+  	elif [ -f /etc/centos-release ]
+     then	
+		echo "The running operating system is CentOS"
+        #install virtualenv for python
+        dnf groupinstall "Development Tools" -y
+        check_command_success "dnf install python3 python3-pip -y" "Install python pip3"
+        check_command_success "pip3 install virtualenv" "virtualenv"
 
-    elif [ -f /etc/sfeserelease ]
-      then	
-      	echo "ERROR"
-      		
-    else
-        echo "ERROR"
-        
-    fi
-    
-else
-    echo "The System is not Linux"
+        #check if the Senior system was installed
+        check_if_system_exists
+
+        #check if the source code from Github is downloaded
+		check_if_os_exists
+	
+		#Download source from Githut
+		check_command_success "git clone https://github.com/TarikVUT/semestral.git /tmp/$new_dir" "Download seniorOS"
+		#check_command_success "git clone -b srun https://github.com/forsenior/os.git $dir_to_install/OS" "srun"
+	
+		#Move srun,stext to /home/
+		check_command_success "sudo mv /tmp/$new_dir/srun /home" "move srun to /home"
+		check_command_success "sudo mv /tmp/$new_dir/stext /home" "move stext to /home"
+		check_command_success "sudo mv /tmp/$new_dir/sweb /home" "move sweb to /home"
+		check_command_success "sudo mv /tmp/$new_dir/smail /home" "move smail to /home"
+	
+		#Create virtual env inside srun,stext,sweb,smail.
+		VIRTUALENV_BIN="/usr/local/bin/virtualenv"
+		$VIRTUALENV_BIN /home/srun/env
+		$VIRTUALENV_BIN /home/stext/env
+		$VIRTUALENV_BIN /home/sweb/env
+		$VIRTUALENV_BIN /home/smail/env
+	
+		#Change OS owner
+		heck_command_success "sudo chown -R $user /home/srun /home/stext /home/sweb /home/smail" "Change owner to $user"
+	
+		#install needed packages for stext app
+		source /home/stext/env/bin/activate && pip install pyqt5 xhtml2pdf  bs4 markdown && deactivate
+		#install needed packages for srun app
+		source /home/srun/env/bin/activate && pip install pillow pygame && dnf install python3-tkinter -y && deactivate
+		#install needed packages for sweb app
+		source /home/sweb/env/bin/activate && dnf install python3-tkinter -y && deactivate
+		#install needed packages for smail app
+		source /home/smail/env/bin/activate && dnf install python3-tkinter -y && deactivate
+	
+		#Create autostart file to run srun
+		auto_start_srun
+		#change autostart owner
+		check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
+		#Allow the user to automatically log in to their account without having to manually enter their username and password
+		auto_login_to_gnome
+		#ask for restart
+		request_restart
+	   
+	else
+    	echo "The System is not Linux"
     
 fi
 

@@ -606,7 +606,7 @@ def main():
     swebButton.bind('<Enter>',play_sweb)
     shutdownButton.bind('<Enter>',play_shutdown)
 
-    #os.system("gsettings set org.gnome.mutter overlay-key ''")
+    os.system("gsettings set org.gnome.mutter overlay-key ''")
 ################ main ##################
     window.mainloop()
 if __name__ == "__main__":
