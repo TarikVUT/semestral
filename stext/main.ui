@@ -31,8 +31,6 @@
 
 #main_menu_widget QPushButton:hover {
 	background-color: rgb(204, 204, 204);
-	border-radius: 7;
-	border: 2px solid black;
 }
 
 

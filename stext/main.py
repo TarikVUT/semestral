@@ -199,9 +199,12 @@ class TextEditor(QTextEdit):
         self.textCursor().removeSelectedText()
         cursor.insertText(text)
 
+        self.formatParagraph = QTextBlockFormat()
+        self.formatParagraph.setBottomMargin(18)
+
         #set the block correctly
         if self.textCursor().block().blockFormat().headingLevel() == 1 and self.textCursor().atBlockStart() and self.textCursor().atBlockEnd():
-            self.textCursor().setBlockFormat(QTextBlockFormat())
+            self.textCursor().setBlockFormat(self.formatParagraph)
 
         self.textCursor().endEditBlock()
         event.accept()
@@ -243,7 +246,7 @@ class Main(QMainWindow):
 
         #setting schedule for saving text files every 60 seconds
         self.checkThreadTimer = QtCore.QTimer(self)
-        self.checkThreadTimer.setInterval(120000) #5000 for testing          180000 = 180 seconds
+        self.checkThreadTimer.setInterval(120000) #5000 for testing          120000 = 120 seconds
         self.checkThreadTimer.timeout.connect(self.automaticSave)
         self.checkThreadTimer.start()
 
@@ -302,15 +305,15 @@ class Main(QMainWindow):
         self.btnSaveFile.clicked.connect(self.saveFile)
         self.btnSaveFileAs.clicked.connect(self.saveFileAs)
 
-        self.btnRedo.clicked.connect(lambda: self.textEdit.redo())
+        self.btnRedo.clicked.connect(self.textEdit.redo)
         self.btnRedo.clicked.connect(self.focusTextEdit)
-        self.btnUndo.clicked.connect(lambda: self.textEdit.undo())
+        self.btnUndo.clicked.connect(self.textEdit.undo)
         self.btnUndo.clicked.connect(self.focusTextEdit)
-        self.btnPaste.clicked.connect(lambda: self.textEdit.paste())
+        self.btnPaste.clicked.connect(self.textEdit.paste)
         self.btnPaste.clicked.connect(self.focusTextEdit)
-        self.btnCopy.clicked.connect(lambda: self.textEdit.copy())
+        self.btnCopy.clicked.connect(self.textEdit.copy)
         self.btnCopy.clicked.connect(self.focusTextEdit)
-        self.btnCut.clicked.connect(lambda: self.textEdit.cut())
+        self.btnCut.clicked.connect(self.textEdit.cut)
         self.btnCut.clicked.connect(self.focusTextEdit)
 
         self.btnUnordered.clicked.connect(partial(self.addList, -1))
@@ -375,6 +378,10 @@ class Main(QMainWindow):
         self.shortcut = QShortcut(QKeySequence("Ctrl+D"), self)  
         self.shortcut.activated.connect(self.insertPicture)
 
+        #This fixed issue with redo in context menu
+        self.shortcut = QShortcut(QKeySequence("Ctrl+Y"), self)  
+        self.shortcut.activated.connect(self.textEdit.redo)
+
         self.zoomIn()
         self.zoomIn()
         self.zoomIn()
@@ -409,7 +416,6 @@ class Main(QMainWindow):
                 cursor.setPosition(current_block.position())
                 cursor.insertText(" ")
                 emptyLinesChecker = True
-        cursor.endEditBlock()
 
         lines = self.textEdit.toMarkdown().splitlines()
         for i, line in enumerate(lines):
@@ -420,6 +426,7 @@ class Main(QMainWindow):
 
         if emptyLinesChecker:
             self.textEdit.undo()
+        cursor.endEditBlock()
 
         return result
         
@@ -441,9 +448,9 @@ class Main(QMainWindow):
 
         for i, line in enumerate(lines):
             if i % 2 == 0 and line.strip() == "":
-                lines[i] = "<br>"
+                lines[i] = "<p><br></p>"
             elif i % 2 == 0 and line.strip() == "#":
-                lines[i] = "<br>"
+                lines[i] = "<h1><br></h1>"
 
         result = "\n".join(lines)
         return result
@@ -458,7 +465,7 @@ class Main(QMainWindow):
                 cursor.setPosition(current_block.position())
                 cursor.deleteChar()
         cursor.endEditBlock()
-        self.textEdit.document().clearUndoRedoStacks()
+
 
     def focusCloseBtn(self):
         self.btnClose.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
@@ -562,37 +569,38 @@ class Main(QMainWindow):
 
     def setHeader(self):
         cursor = self.textEdit.textCursor()
-        cursor.beginEditBlock()
+        if cursor.blockFormat().headingLevel() != 1:
+            cursor.beginEditBlock()
 
-        # Get selected text or current line
-        if not cursor.hasSelection():
-            cursor.select(cursor.LineUnderCursor)
-        text = cursor.selectedText().strip()
-        formattedText = f"<h1>{text}</h1><p></p>"
+            # Get selected text or current line
+            if not cursor.hasSelection():
+                cursor.select(cursor.LineUnderCursor)
+            text = cursor.selectedText().strip()
+            formattedText = f"<h1>{text}</h1><p></p>"
 
-        selectionAtStart = cursor.selectionStart() == cursor.block().position()
-        selectionAtEnd = cursor.selectionEnd() == cursor.block().position() + cursor.block().length() - 1
+            selectionAtStart = cursor.selectionStart() == cursor.block().position()
+            selectionAtEnd = cursor.selectionEnd() == cursor.block().position() + cursor.block().length() - 1
 
-        # Replace text with formatted text
-        if not selectionAtEnd and not selectionAtStart:
-            if not cursor.atStart() or not cursor.selectionStart() == 0:
+            # Replace text with formatted text
+            if not selectionAtEnd and not selectionAtStart:
+                if not cursor.atStart() or not cursor.selectionStart() == 0:
+                    cursor.insertText("\n")
+                cursor.setBlockFormat(self.formatHeader1)
+                cursor.insertHtml(formattedText)
                 cursor.insertText("\n")
-            cursor.setBlockFormat(self.formatHeader1)
-            cursor.insertHtml(formattedText)
-            cursor.insertText("\n")
-            cursor.setBlockFormat(self.formatParagraph)
-        elif selectionAtEnd and not selectionAtStart:
-            cursor.insertText("\n")
-            cursor.setBlockFormat(self.formatHeader1)
-            cursor.insertHtml(formattedText)
-            cursor.setPosition(cursor.NextBlock)
-            cursor.setBlockFormat(self.formatParagraph)
-        else:
-            cursor.setBlockFormat(self.formatHeader1)
-            cursor.insertHtml(formattedText)
-            cursor.setBlockFormat(self.formatParagraph)
+                cursor.setBlockFormat(self.formatParagraph)
+            elif selectionAtEnd and not selectionAtStart:
+                cursor.insertText("\n")
+                cursor.setBlockFormat(self.formatHeader1)
+                cursor.insertHtml(formattedText)
+                cursor.setPosition(cursor.NextBlock)
+                cursor.setBlockFormat(self.formatParagraph)
+            else:
+                cursor.setBlockFormat(self.formatHeader1)
+                cursor.insertHtml(formattedText)
+                cursor.setBlockFormat(self.formatParagraph)
 
-        cursor.endEditBlock()
+            cursor.endEditBlock()
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.KeyPress and obj is self.textEdit:
@@ -655,28 +663,28 @@ class Main(QMainWindow):
         menu = QMenu(self)
         menu.setFont(QFont("Segoe UI", 17))
 
-        undo = QAction("Zpět")
-        undo.triggered.connect(lambda: self.textEdit.undo())
-        undo.setShortcut(QKeySequence("Ctrl+Z"))
-        
-        redo = QAction("Znovu")
-        redo.triggered.connect(lambda: self.textEdit.undo())
+        redo = QAction("Znovu", self)
+        redo.triggered.connect(self.textEdit.redo)
         redo.setShortcut(QKeySequence("Ctrl+Y"))
 
-        cut = QAction("Výjmout")
-        cut.triggered.connect(lambda: self.textEdit.cut())
+        undo = QAction("Zpět", self)
+        undo.triggered.connect(self.textEdit.undo)
+        undo.setShortcut(QKeySequence("Ctrl+Z"))
+
+        cut = QAction("Výjmout", self)
+        cut.triggered.connect(self.textEdit.cut)
         cut.setShortcut(QKeySequence("Ctrl+X"))
 
-        copy = QAction("Kopírovat")
-        copy.triggered.connect(lambda: self.textEdit.copy())
+        copy = QAction("Kopírovat", self)
+        copy.triggered.connect(self.textEdit.copy)
         copy.setShortcut(QKeySequence("Ctrl+C"))
 
-        paste = QAction("Vložit")
-        paste.triggered.connect(lambda: self.textEdit.paste())
+        paste = QAction("Vložit", self)
+        paste.triggered.connect(self.textEdit.paste)
         paste.setShortcut(QKeySequence("Ctrl+V"))
 
-        selectAll = QAction("Označit vše")
-        selectAll.triggered.connect(lambda: self.textEdit.selectAll())
+        selectAll = QAction("Označit vše", self)
+        selectAll.triggered.connect(self.textEdit.selectAll)
         selectAll.setShortcut(QKeySequence("Ctrl+A"))
         
         menu.addAction(undo)
@@ -763,6 +771,7 @@ class Main(QMainWindow):
         self.setWindowTitle(pathBtn)
         self.currentPath = pathBtn
         self.deleteSpaces()
+        self.textEdit.document().clearUndoRedoStacks()
 
     @QtCore.pyqtSlot()
     def zoomIn(self):
@@ -820,13 +829,12 @@ class Main(QMainWindow):
             self.setWindowTitle(fname[0])
             self.currentPath = fname[0]
             self.deleteSpaces()
+            self.textEdit.document().clearUndoRedoStacks()
 
     def saveFile(self):
         if self.currentPath != None:
-            self.textEditContent = self.markdownWithEmptyLines()
-            with open(self.currentPath, "w") as f:
-                f.write(self.textEditContent)
-            self.saveLastFileName()
+            self.saveFileTXT(self.currentPath)
+            self.saveFilePDF(self.currentPath)
         else:
             self.saveFileAs()
     
@@ -838,81 +846,85 @@ class Main(QMainWindow):
     def saveFileAs(self):
         dlg = SaveDialog(self.btnChangeLanguage.text())
         dlg.exec_()
-        results = dlg.getResults()
+        fileName = dlg.getResults()
 
-        if type(results) == tuple:
-            if results[1] == True: #for txt/md
-                pathName = QDir().homePath() + "/" + results[0] + ".txt"
-                self.textEditContent = self.markdownWithEmptyLines()
-                with open(pathName, "w") as f:
-                    f.write(self.textEditContent)
-                self.setWindowTitle(pathName)
-                self.currentPath = pathName
+        if fileName != None:
+            pathName = QDir().homePath() + "/" + fileName + ".txt"
+            self.currentPath = pathName
+            self.saveFileTXT(pathName)
+            self.saveLastFileName()
+            self.setWindowTitle(pathName)
+            if self.continuosPath != None:
+                if os.path.exists(self.continuosPath):
+                    os.remove(self.continuosPath)
+            self.continuosPath = None
 
-                self.saveLastFileName()
-                if self.continuosPath != None:
-                    if os.path.exists(self.continuosPath):
-                        os.remove(self.continuosPath)
-                self.continuosPath = None
+            self.saveFilePDF(pathName)
 
-            elif results[2] == True:  #for PDF
+
+    def saveFileTXT(self, filepath):
+        self.textEditContent = self.markdownWithEmptyLines()
+        with open(filepath, "w") as f:
+            f.write(self.textEditContent)
         
-                style = '''<!DOCTYPE html>
-                <html>
-                <head>
-                <meta charset="utf-8">
-                <style type = "text/css">
-                @font-face {
-                    font-family: Arial;
-                    src: url("Fonts/ARIAL.TTF");
-                }
 
-                @font-face {
-                    font-family: Arial;
-                    src: url("Fonts/ArialBold.ttf");
-                    font-weight: bold;
-                }
 
-                @font-face {
-                    font-family: Arial;
-                    src: url("Fonts/ArialItalic.ttf");
-                    font-style: italic;
-                }
+    def saveFilePDF(self, pathName):
+        style = '''<!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style type = "text/css">
+        @font-face {
+            font-family: Arial;
+            src: url("Fonts/ARIAL.TTF");
+        }
 
-                @font-face {
-                    font-family: Arial;
-                    src: url("Fonts/ArialBoldItalic.ttf");
-                    font-weight: bold;
-                    font-style: italic;
-                }
+        @font-face {
+            font-family: Arial;
+            src: url("Fonts/ArialBold.ttf");
+            font-weight: bold;
+        }
 
-                body {
-                    font-family: Arial;
-                    font-size: '''+str(self.textEdit.font().pointSize())+'''pt;
+        @font-face {
+            font-family: Arial;
+            src: url("Fonts/ArialItalic.ttf");
+            font-style: italic;
+        }
 
-                }        
-                p {
-                    margin-bottom: 18px;
-                    margin-top: 12px;
-                    white-space: pre-wrap;
-                }               
+        @font-face {
+            font-family: Arial;
+            src: url("Fonts/ArialBoldItalic.ttf");
+            font-weight: bold;
+            font-style: italic;
+        }
 
-                h1 {
-                    font-size: '''+str(self.textEdit.font().pointSize()*2)+'''pt;
-                    margin-bottom: 30px;
-                    margin-top: 18px;
-                    white-space: pre-wrap;
-                }
-                </style>
-                </head>'''
+        body {
+            font-family: Arial;
+            font-size: '''+str(self.textEdit.font().pointSize())+'''pt;
+        }        
                 
-                markdownText = self.markdownWithEmptyLines().replace("file://", "")
-                markdownCorrectly = self.loadWithEmptyLinesPDF(markdownText)
-                htmlText = style + "\n<body>\n" + markdown.markdown(markdownCorrectly) + "\n</body>\n</html>"
-                print(htmlText)
-                outputfile = QDir().homePath() + "/"  + results[0] + ".pdf"
+        p {
+            margin-bottom: 18px;
+            margin-top: 12px;
+            white-space: pre-wrap;
+        }               
+
+        h1 {
+            font-size: '''+str(self.textEdit.font().pointSize()*2)+'''pt;
+            margin-bottom: 30px;
+            margin-top: 18px;
+            white-space: pre-wrap;
+        }
+        </style>
+        </head>'''
                 
-                pisa_status = self.convert_html_to_pdf(htmlText, outputfile)
+        markdownText = self.markdownWithEmptyLines().replace("file://", "")
+        markdownCorrectly = self.loadWithEmptyLinesPDF(markdownText)
+        htmlText = style + "\n<body>\n" + markdown.markdown(markdownCorrectly) + "\n</body>\n</html>"
+        pathNamePDF = os.path.splitext(pathName)[0] + ".pdf"
+
+        pisa_status = self.convert_html_to_pdf(htmlText, pathNamePDF)
 
 
 
@@ -943,7 +955,7 @@ class Main(QMainWindow):
                 dtString = now.strftime("%H_%M__%d_%m_%Y")
                 self.continuosPath = QDir().homePath() +"/file_" + dtString + ".txt"
         else:
-            self.saveFile()
+            self.saveFileTXT(self.currentPath)
 
     def saveLastFileName(self):
         now = datetime.now()

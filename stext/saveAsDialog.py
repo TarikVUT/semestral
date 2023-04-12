@@ -14,7 +14,7 @@ class SaveDialog(QDialog):
         self.btnLanguage = language
         # Load the dialog's GUI
         loadUi("saveAs.ui", self)
-        self.setFixedSize(570, 305)
+        self.setFixedSize(570, 255)
         self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint)
 
         self.widget_4.hide()
@@ -29,15 +29,13 @@ class SaveDialog(QDialog):
         
         if self.btnLanguage == "en":
             self.lblFileName.setText(translate["stext_en_lblFileName"])
-            self.btnTXT.setText(translate["stext_en_btnTXT"])
             self.btnSave.setText(translate["stext_en_btnSave"])
             self.btnCancel.setText(translate["stext_en_btnCancel"])
+            self.windowTitle("Save as")
 
         with open("audioTTS.json", "r") as f:
             audio = json.load(f)
         self.lineEdit.enterEvent = lambda e: self.playAudio(audio[f"stext_{self.btnLanguage}_lblFileNameTTS"])
-        self.btnTXT.enterEvent = lambda e: self.playAudio(audio[f"stext_{self.btnLanguage}_btnTXTTTS"])
-        self.btnPDF.enterEvent = lambda e: self.playAudio(audio[f"stext_{self.btnLanguage}_btnPDFTTS"])
         self.btnSave.enterEvent = lambda e: self.playAudio(audio[f"stext_{self.btnLanguage}_btnSaveTTS"])
         self.btnCancel.enterEvent = lambda e: self.playAudio(audio[f"stext_{self.btnLanguage}_btnCancelTTS"])
 
@@ -47,10 +45,8 @@ class SaveDialog(QDialog):
         if self.lineEdit.text() != "":
             if not match:
                 text = self.lineEdit.text()
-                txt = self.btnTXT.isChecked()
-                pdf = self.btnPDF.isChecked()
                 self.close()
-                return text, txt, pdf
+                return text
             else:
                 self.widget_4.show()
                 if self.btnLanguage == "cz":
