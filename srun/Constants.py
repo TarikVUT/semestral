@@ -4,8 +4,8 @@ Author : Tarik Alkanan
 import json
 from setConstant import *
 import os
-# change dir to /home/sapp
-os.chdir("/home/sapp")
+# change dir to /home/srun
+os.chdir("/home/srun")
 path = os.getcwd()
 # read the Json file
 file_json = open(path + '/Constants.json')

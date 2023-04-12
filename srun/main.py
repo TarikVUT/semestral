@@ -20,7 +20,7 @@ import string
 
 def main():
 
-    os.chdir("/home/sapp")
+    os.chdir("/home/srun")
     COLOR_BG = "#D3D3D3"
 
     ############# Create the window ###############
@@ -142,14 +142,14 @@ def main():
     ###########################################################
 
     ################## Function to Open stext, sweb, smail ##################
-    #open sapp
-    def sapp_window():
-        os.chdir("/home/sapp")
+    #open srun
+    def srun_window():
+        os.chdir("/home/srun")
         try:
-            if os.system('/home/sapp/env/bin/python /home/sapp/main.py') != 0 :
+            if os.system('/home/srun/env/bin/python /home/srun/main.py') != 0 :
                 raise Exception()
         except (Exception) :
-            messagebox.showerror('Error','Can not open sapp app')
+            messagebox.showerror('Error','Can not open srun app')
         window.destroy()
         
     #open stext app
@@ -363,13 +363,13 @@ def main():
             
 
 
-        off_img = PhotoImage(file = r'/home/sapp/Images/off-button.png')
-        on_img = PhotoImage(file = r'/home/sapp/Images/on-button.png')
-        cz_img = PhotoImage(file = r'/home/sapp/Images/cz-button.png')
-        en_img = PhotoImage(file = r'/home/sapp/Images/en-button.png')
-        close_img = PhotoImage(file = r'/home/sapp/Images/close.png')
-        change_img = PhotoImage(file = r'/home/sapp/Images/change.png')
-        reboot_img = PhotoImage(file = r'/home/sapp/Images/reboot.png')
+        off_img = PhotoImage(file = r'/home/srun/Images/off-button.png')
+        on_img = PhotoImage(file = r'/home/srun/Images/on-button.png')
+        cz_img = PhotoImage(file = r'/home/srun/Images/cz-button.png')
+        en_img = PhotoImage(file = r'/home/srun/Images/en-button.png')
+        close_img = PhotoImage(file = r'/home/srun/Images/close.png')
+        change_img = PhotoImage(file = r'/home/srun/Images/change.png')
+        reboot_img = PhotoImage(file = r'/home/srun/Images/reboot.png')
 
         ############ Check data from mainConstants.JSON ########
         if COLORFUL :
