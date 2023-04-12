@@ -151,16 +151,16 @@ then
 		#update the system
 		apt-get update -y
 
-        #install git
-        check_command_success "apt-get install git" "Install git"
+       		#install git
+	        check_command_success "apt-get install git" "Install git"
+	
+	        #install virtualenv for python
+	        check_command_success "apt-get install python3-virtualenv" "Install virtualenv"
 
-        #install virtualenv for python
-        check_command_success "apt-get install python3-virtualenv" "Install virtualenv"
+	        #check if the Senior system was installed
+        	check_if_system_exists 
 
-        #check if the Senior system was installed
-        check_if_system_exists 
-
-        #check if the source code from Github is downloaded
+	        #check if the source code from Github is downloaded
 		check_if_os_exists
 
 		#Download source code from Githut
@@ -208,12 +208,12 @@ then
 		#update the system
 		dnf update -y
 
-        #install virtualenv for python
-        check_command_success "sudo dnf install virtualenv -y" "Install virtualenv"
+      	        #install virtualenv for python
+	        check_command_success "sudo dnf install virtualenv -y" "Install virtualenv"
         
-        #check if the Senior system was installed
-        check_if_system_exists
-        #check if the source code from Github is downloaded
+       	  	#check if the Senior system was installed
+	        check_if_system_exists
+	        #check if the source code from Github is downloaded
 		check_if_os_exists
 	
 		#Download source from Githut
@@ -257,17 +257,17 @@ then
 	
 
   	elif [ -f /etc/centos-release ]
-     then	
+    	   then	
 		echo "The running operating system is CentOS"
-        #install virtualenv for python
-        dnf groupinstall "Development Tools" -y
-        check_command_success "dnf install python3 python3-pip -y" "Install python pip3"
-        check_command_success "pip3 install virtualenv" "virtualenv"
+        	#install virtualenv for python
+	        dnf groupinstall "Development Tools" -y
+        	check_command_success "dnf install python3 python3-pip -y" "Install python pip3"
+	        check_command_success "pip3 install virtualenv" "virtualenv"
 
-        #check if the Senior system was installed
-        check_if_system_exists
+	        #check if the Senior system was installed
+        	check_if_system_exists
 
-        #check if the source code from Github is downloaded
+	        #check if the source code from Github is downloaded
 		check_if_os_exists
 	
 		#Download source from Githut
