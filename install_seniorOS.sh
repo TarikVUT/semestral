@@ -209,7 +209,7 @@ then
        then
 		echo "The running operating system is Fedora"
 		#update the system
-		dnf update -y
+		#dnf update -y
 
       	        #install virtualenv for python
 	        check_command_success "sudo dnf install virtualenv -y" "Install virtualenv"
