@@ -201,6 +201,8 @@ then
 		check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
 		#Allow the user to automatically log in to their account without having to manually enter their username and password
 		auto_login_to_gnome "gdm3" "daemon.conf"
+		#command to disable the automatic Screen Lock
+		dconf write /org/gnome/desktop/screensaver/lock-enabled false
 		#ask for restart
 		request_restart
 	
@@ -254,6 +256,8 @@ then
 		check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
 		#Allow the user to automatically log in to their account without having to manually enter their username and password
 		auto_login_to_gnome "gdm" "custom.conf"
+		#command to disable the automatic Screen Lock in Fedora Workstation
+		dconf write /org/gnome/desktop/screensaver/lock-enabled false
 		#ask for restart
 		request_restart
 	
@@ -308,6 +312,8 @@ then
 		check_command_success "sudo chown -R $user /home/$user/.config/autostart" "Change autostart owner to $user"
 		#Allow the user to automatically log in to their account without having to manually enter their username and password
 		auto_login_to_gnome "gdm" "custom.conf"
+		#command to disable the automatic Screen Lock 
+		dconf write /org/gnome/desktop/screensaver/lock-enabled false
 		#ask for restart
 		request_restart
 	   

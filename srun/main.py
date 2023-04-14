@@ -43,14 +43,14 @@ def main():
     ##### Basic functions #####
     # shutdown function
     def shutdown_system():  
-        os.system("shutdown now -h")
+        os.system("systemctl poweroff")
     
     #enable window key
     def enable_window_key():
         os.system("gsettings set org.gnome.mutter overlay-key 'Super'")
     # function to reboot the system
     def reboot_sys():
-        os.system('reboot')
+        os.system('systemctl reboot')
         
     # function to hash passwd   
     def hash_fun(string):
@@ -498,7 +498,7 @@ def main():
         
         check_root_win = Toplevel(window)
         check_root_win.title('Permission only for Administrator')
-        check_root_win_width = 350
+        check_root_win_width = 400
         check_root_win_height = 200
         
         x_point=(screen_width/2)-(check_root_win_width/2)
