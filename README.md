@@ -4,14 +4,7 @@ semestral
 ```bash
 echo "user ALL=(ALL:ALL) ALL" >> /etc/sudoers
 ```
-enable shutdown without sudo
-```bash
-<username> ALL=(ALL) NOPASSWD: /sbin/shutdown -h now
-```
-enable reboot without sudo
-```bash
-<username> ALL=(ALL) NOPASSWD: /sbin/reboot
-```
+
 #For Fedora
 1. install gnome-shell-extension
 ```bash
