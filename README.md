@@ -4,8 +4,8 @@ semestral
 echo "user ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
 #For Fedora
-1- install gnome-shell-extensios*
-dnf install gnome-shell-extensios*
+1- install gnome-shell-extension
+sudo dnf install gnome-shell-extension* -y
 
 2- reload gnome
 killall -u user
