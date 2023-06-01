@@ -5,6 +5,9 @@ semestral
 echo "user ALL=(ALL:ALL) ALL" >> /etc/sudoers
 ```
 
+https://github.com/TarikVUT/semestral/assets/78847793/290dc439-a790-447d-acf3-5da7779fa010
+
+
 #For Fedora
 1. install gnome-shell-extension
 ```bash
