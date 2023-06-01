@@ -21,3 +21,7 @@ dconf write /org/gnome/desktop/screensaver/lock-enabled false
 ```bash
 killall -u user
 ```
+
+
+https://github.com/TarikVUT/semestral/assets/78847793/8947e05a-9d6b-467e-b0d7-849ef5fb8240
+
